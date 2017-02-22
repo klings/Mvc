@@ -91,7 +91,7 @@ The rest of the thing");
             Assert.Equal("Some/Path/{value}", template);
         }
 
-        [Fact(Skip = "We're not bothering with this scenario until we use Razor to parse this stuff")]
+        [Fact(Skip = "Re-evaluate this scenario after we use Razor to parse this stuff")]
         public void TryGetRouteTemplate_JunkBeforeNewline()
         {
             // Arrange
@@ -112,8 +112,8 @@ a new line");
             var projectItem = new TestRazorProjectItem(@"@page");
 
             // Act & Assert
-            Assert.False(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
-            Assert.Null(template);
+            Assert.True(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.Empty(template);
         }
 
         [Fact]
@@ -125,8 +125,8 @@ a new line");
 Non-path things");
 
             // Act & Assert
-            Assert.False(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
-            Assert.Null(template);
+            Assert.True(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.Empty(template);
         }
 
         [Fact]

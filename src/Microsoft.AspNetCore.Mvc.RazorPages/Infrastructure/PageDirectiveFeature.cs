@@ -48,13 +48,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
                 template = content.Substring(PageDirective.Length, endOfDirective - PageDirective.Length).Trim().Trim('"');
 
-                // No path on this RazorPage
-                if (string.IsNullOrEmpty(template))
-                {
-                    template = null;
-                    return false;
-                }
-
                 return true;
             }
 
