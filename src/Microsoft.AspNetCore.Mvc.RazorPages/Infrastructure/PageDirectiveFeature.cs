@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             if (content.StartsWith(PageDirective, StringComparison.Ordinal))
             {
                 var newLineIndex = content.IndexOf(Environment.NewLine, PageDirective.Length);
-                template = content.Substring(PageDirective.Length, newLineIndex - PageDirective.Length).Trim();
+                template = content.Substring(PageDirective.Length, newLineIndex - PageDirective.Length).Trim().Trim('"');
                 return true;
             }
 
