@@ -11,18 +11,50 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
     {
         public static bool TryGetRouteTemplate(RazorProjectItem projectItem, out string template)
         {
+            if (projectItem == null)
+            {
+                throw new ArgumentNullException(nameof(projectItem));
+            }
+
             const string PageDirective = "@page";
 
-            string content;
-            using (var streamReader = new StreamReader(projectItem.Read()))
+            var stream = projectItem.Read();
+
+            if (stream == null)
             {
-                content = streamReader.ReadToEnd();
+                throw new ArgumentOutOfRangeException($"{nameof(projectItem)}.{nameof(projectItem.Read)} can't return null.");
+            }
+
+            string content;
+            using (var streamReader = new StreamReader(stream))
+            {
+                content = streamReader.ReadToEnd().TrimStart();
             }
 
             if (content.StartsWith(PageDirective, StringComparison.Ordinal))
             {
-                var newLineIndex = content.IndexOf(Environment.NewLine, PageDirective.Length);
-                template = content.Substring(PageDirective.Length, newLineIndex - PageDirective.Length).Trim().Trim('"');
+                var endOfDirective = content.IndexOf(Environment.NewLine, PageDirective.Length);
+                if (endOfDirective < 0)
+                {
+                    var otherNewLine = Environment.NewLine == "/r/n" ? "/n" : "/r/n";
+                    endOfDirective = content.IndexOf(otherNewLine, PageDirective.Length);
+                }
+
+                // No Newlines, read to end of content
+                if (endOfDirective < 0)
+                {
+                    endOfDirective = content.Length;
+                }
+
+                template = content.Substring(PageDirective.Length, endOfDirective - PageDirective.Length).Trim().Trim('"');
+
+                // No path on this RazorPage
+                if (string.IsNullOrEmpty(template))
+                {
+                    template = null;
+                    return false;
+                }
+
                 return true;
             }
 
