@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 {
     public static class PageDirectiveFeature
     {
-        public static bool TryGetRouteTemplate(RazorProjectItem projectItem, out string template)
+        public static bool TryGetPageDirective(RazorProjectItem projectItem, out string template)
         {
             if (projectItem == null)
             {
@@ -20,33 +20,28 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
             var stream = projectItem.Read();
 
-            if (stream == null)
-            {
-                throw new ArgumentOutOfRangeException($"{nameof(projectItem)}.{nameof(projectItem.Read)} can't return null.");
-            }
-
-            string content;
+            string content = null;
             using (var streamReader = new StreamReader(stream))
             {
-                content = streamReader.ReadToEnd().TrimStart();
+                do
+                {
+                    content = streamReader.ReadLine();
+                } while (content != null && string.IsNullOrWhiteSpace(content));
             }
 
-            if (content.StartsWith(PageDirective, StringComparison.Ordinal))
+            if (content != null && content.StartsWith(PageDirective, StringComparison.Ordinal))
             {
-                var endOfDirective = content.IndexOf(Environment.NewLine, PageDirective.Length);
-                if (endOfDirective < 0)
-                {
-                    var otherNewLine = Environment.NewLine == "/r/n" ? "/n" : "/r/n";
-                    endOfDirective = content.IndexOf(otherNewLine, PageDirective.Length);
-                }
+                template = content.Substring(PageDirective.Length, content.Length - PageDirective.Length).Trim();
 
-                // No Newlines, read to end of content
-                if (endOfDirective < 0)
+                // If it's not in quotes it's not our template
+                if (!template.StartsWith("\"") || !template.EndsWith("\""))
                 {
-                    endOfDirective = content.Length;
+                    template = string.Empty;
                 }
-
-                template = content.Substring(PageDirective.Length, endOfDirective - PageDirective.Length).Trim().Trim('"');
+                else
+                {
+                    template = template.Substring(1, template.Length - 2);
+                }
 
                 return true;
             }

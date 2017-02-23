@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
     public class PageDirectiveFeatureTest
     {
         [Fact]
-        public void TryGetRouteTemplate_FindsTemplate()
+        public void TryGetPageDirective_FindsTemplate()
         {
             // Arrange
             string template;
@@ -20,66 +20,77 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 The rest of the thing");
 
             // Act & Assert
-            Assert.True(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Equal("Some/Path/{value}", template);
         }
 
         [Fact]
-        public void TryGetRouteTemplate_NoNewLine()
+        public void TryGetPageDirective_NoNewLine()
         {
             // Arrange
             string template;
             var projectItem = new TestRazorProjectItem(@"@page ""Some/Path/{value}""");
 
             // Act & Assert
-            Assert.True(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Equal("Some/Path/{value}", template);
         }
         [Fact]
-        public void TryGetRouteTemplate_JunkBeforeDirective()
+        public void TryGetPageDirective_JunkBeforeDirective()
         {
             // Arrange
             string template;
             var projectItem = new TestRazorProjectItem(@"Not a directive @page ""Some/Path/{value}""");
 
             // Act & Assert
-            Assert.False(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.False(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Null(template);
         }
 
         [Fact]
-        public void TryGetRouteTemplate_NoQuotesAroundPath()
+        public void TryGetPageDirective_NoQuotesAroundPath_IsNotTemplate()
         {
             // Arrange
             string template;
-            var projectItem = new TestRazorProjectItem(@"@page Some/Path/{value}
-");
+            var projectItem = new TestRazorProjectItem(@"@page Some/Path/{value}");
 
             // Act & Assert
-            Assert.True(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
-            Assert.Equal("Some/Path/{value}", template);
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
+            Assert.Equal(string.Empty, template);
         }
 
         [Fact]
-        public void TryGetRouteTemplate_WrongNewLine()
+        public void TryGetPageDirective_WrongNewLine()
         {
             // Arrange
-            string wrongNewLine = "/r/n";
-            if (Environment.NewLine == "/r/n")
+            string wrongNewLine = "\r\n";
+            if (Environment.NewLine == "\r\n")
             {
-                wrongNewLine = "/n";
+                wrongNewLine = "\n";
             }
 
             string template;
             var projectItem = new TestRazorProjectItem($"@page \"Some/Path/{{value}}\" {wrongNewLine}");
 
             // Act & Assert
-            Assert.True(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Equal("Some/Path/{value}", template);
         }
 
         [Fact]
-        public void TryGetRouteTemplate_WhitespaceBeforeDirective()
+        public void TryGetPageDirective_NewLineBeforeDirective()
+        {
+            // Arrange
+            string template;
+            var projectItem = new TestRazorProjectItem("\n @page \"Some/Path/{value}\"");
+
+            // Act
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
+            Assert.Equal("Some/Path/{value}", template);
+        }
+
+        [Fact]
+        public void TryGetPageDirective_WhitespaceBeforeDirective()
         {
             // Arrange
             string template;
@@ -87,12 +98,12 @@ The rest of the thing");
 ");
 
             // Act & Assert
-            Assert.True(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Equal("Some/Path/{value}", template);
         }
 
         [Fact(Skip = "Re-evaluate this scenario after we use Razor to parse this stuff")]
-        public void TryGetRouteTemplate_JunkBeforeNewline()
+        public void TryGetPageDirective_JunkBeforeNewline()
         {
             // Arrange
             string template;
@@ -100,24 +111,24 @@ The rest of the thing");
 a new line");
 
             // Act & Assert
-            Assert.False(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.False(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Null(template);
         }
 
         [Fact]
-        public void TryGetRouteTemplate_Directive_WithoutPathOrContent()
+        public void TryGetPageDirective_Directive_WithoutPathOrContent()
         {
             // Arrange
             string template;
             var projectItem = new TestRazorProjectItem(@"@page");
 
             // Act & Assert
-            Assert.True(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Empty(template);
         }
 
         [Fact]
-        public void TryGetRouteTemplate_DirectiveWithContent_WithoutPath()
+        public void TryGetPageDirective_DirectiveWithContent_WithoutPath()
         {
             // Arrange
             string template;
@@ -125,12 +136,12 @@ a new line");
 Non-path things");
 
             // Act & Assert
-            Assert.True(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Empty(template);
         }
 
         [Fact]
-        public void TryGetRouteTemplate_NoDirective()
+        public void TryGetPageDirective_NoDirective()
         {
             // Arrange
             string template;
@@ -138,41 +149,41 @@ Non-path things");
 Nobody will use it");
 
             // Act & Assert
-            Assert.False(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.False(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Null(template);
         }
 
         [Fact]
-        public void TryGetRouteTemplate_EmptyStream()
+        public void TryGetPageDirective_EmptyStream()
         {
             // Arrange
             string template;
             var projectItem = new TestRazorProjectItem(string.Empty);
 
             // Act
-            Assert.False(PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.False(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Null(template);
         }
 
         [Fact]
-        public void TryGetRouteTemplate_NullProject()
+        public void TryGetPageDirective_NullProject()
         {
             // Arrange
             string template;
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => PageDirectiveFeature.TryGetRouteTemplate(projectItem: null, template: out template));
+            Assert.Throws<ArgumentNullException>(() => PageDirectiveFeature.TryGetPageDirective(projectItem: null, template: out template));
         }
 
         [Fact]
-        public void TryGetRouteTemplate_NullStream()
+        public void TryGetPageDirective_NullStream()
         {
             // Arrange
             string template;
             var projectItem = new TestRazorProjectItem(content: null);
 
             // Act & Assert
-            Assert.Throws<ArgumentOutOfRangeException>(() => PageDirectiveFeature.TryGetRouteTemplate(projectItem, out template));
+            Assert.Throws<ArgumentNullException>(() => PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
         }
     }
 
