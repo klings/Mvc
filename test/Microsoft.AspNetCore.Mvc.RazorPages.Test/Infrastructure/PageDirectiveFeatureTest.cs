@@ -35,6 +35,7 @@ The rest of the thing");
             Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Equal("Some/Path/{value}", template);
         }
+
         [Fact]
         public void TryGetPageDirective_JunkBeforeDirective()
         {
@@ -46,6 +47,33 @@ The rest of the thing");
             Assert.False(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
             Assert.Null(template);
         }
+
+        [Fact]
+        public void TryGetPageDirective_MultipleQuotes()
+        {
+            // Arrange
+            string template;
+            var projectItem = new TestRazorProjectItem(@"@page """"template""""");
+
+            // Act & Assert
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
+            Assert.Equal(@"""template""", template);
+        }
+
+        [Theory]
+        [InlineData(@"""Some/Path/{value}")]
+        [InlineData(@"Some/Path/{value}""")]
+        public void TryGetPageDirective_RequiresBothQuotes(string inTemplate)
+        {
+            // Arrange
+            string template;
+            var projectItem = new TestRazorProjectItem($@"@page {inTemplate}");
+
+            // Act & Assert
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
+            Assert.Equal(string.Empty, template);
+        }
+
 
         [Fact]
         public void TryGetPageDirective_NoQuotesAroundPath_IsNotTemplate()
@@ -63,11 +91,7 @@ The rest of the thing");
         public void TryGetPageDirective_WrongNewLine()
         {
             // Arrange
-            string wrongNewLine = "\r\n";
-            if (Environment.NewLine == "\r\n")
-            {
-                wrongNewLine = "\n";
-            }
+            var wrongNewLine = Environment.NewLine == "\r\n" ? "\n" : "\r\n";
 
             string template;
             var projectItem = new TestRazorProjectItem($"@page \"Some/Path/{{value}}\" {wrongNewLine}");
@@ -111,8 +135,8 @@ The rest of the thing");
 a new line");
 
             // Act & Assert
-            Assert.False(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
-            Assert.Null(template);
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out template));
+            Assert.Empty(template);
         }
 
         [Fact]

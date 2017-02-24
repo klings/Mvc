@@ -34,14 +34,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             {
                 template = content.Substring(PageDirective.Length, content.Length - PageDirective.Length).Trim();
 
-                // If it's not in quotes it's not our template
-                if (!template.StartsWith("\"") || !template.EndsWith("\""))
-                {
-                    template = string.Empty;
-                }
-                else
+                if (template.StartsWith("\"") && template.EndsWith("\""))
                 {
                     template = template.Substring(1, template.Length - 2);
+                }
+                // If it's not in quotes it's not our template
+                else
+                {
+                    template = string.Empty;
                 }
 
                 return true;
