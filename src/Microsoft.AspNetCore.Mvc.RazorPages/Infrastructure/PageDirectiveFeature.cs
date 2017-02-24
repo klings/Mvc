@@ -27,6 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                 {
                     content = streamReader.ReadLine();
                 } while (content != null && string.IsNullOrWhiteSpace(content));
+                content = content != null ? content.Trim() : content;
             }
 
             if (content != null && content.StartsWith(PageDirective, StringComparison.Ordinal))
